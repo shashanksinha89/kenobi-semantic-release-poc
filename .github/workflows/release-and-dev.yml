@@ -19,7 +19,10 @@ name: Release & Dev Deploy
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+      - 'maintenance/**'
   workflow_dispatch: {}
 
 jobs:
