@@ -1,0 +1,16 @@
+{
+  "name": "kenobi-c2s-semantic-release-poc",
+  "version": "1.22.0",
+  "private": true,
+  "description": "Tooling-only package.json for semantic-release. The actual application is Python (pyproject.toml). semantic-release runs in CI via npx; this file just declares the plugin dependencies.",
+  "devDependencies": {
+    "semantic-release": "^24.2.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/release-notes-generator": "^14.0.3",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.1",
+    "@semantic-release/exec": "^6.0.3",
+    "conventional-changelog-conventionalcommits": "^8.0.0"
+  }
+}

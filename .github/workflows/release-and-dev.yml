@@ -1,0 +1,125 @@
+name: Release & Dev Deploy
+
+# Mirror of kenobi-release-please-poc/.github/workflows/release-and-dev.yml,
+# but with semantic-release in place of release-please.
+#
+# Key behavioural difference vs release-please:
+#   - semantic-release does NOT use a Release-PR pattern. It tags + cuts the
+#     GitHub Release immediately on every qualifying main push, in the same
+#     workflow run. There is NO human-merge gate between commit-on-main and
+#     tag-pushed-to-origin.
+#   - The downstream `build-versioned-image` job is gated on the
+#     `new_release_published` output (semantic-release's analog of
+#     release-please's `release_created`).
+#
+# Per-job permissions and concurrency preserve least-privilege and per-flow
+# queueing semantics. build-and-deploy-dev intentionally has no `needs:` —
+# dev rollouts run in parallel with semantic-release and are not blocked by
+# release failures.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  semantic-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # to create tags + GitHub releases + push CHANGELOG/pyproject bump
+      issues: write         # semantic-release/github comments on closed issues
+      pull-requests: write  # semantic-release/github comments on merged PRs
+    concurrency:
+      group: semantic-release-${{ github.ref }}
+      cancel-in-progress: false  # never cancel a release mid-flight
+    outputs:
+      new_release_published: ${{ steps.sr.outputs.new_release_published }}
+      new_release_version:   ${{ steps.sr.outputs.new_release_version }}
+      new_release_git_tag:   ${{ steps.sr.outputs.new_release_git_tag }}
+      new_release_major:     ${{ steps.sr.outputs.new_release_major_version }}
+      new_release_minor:     ${{ steps.sr.outputs.new_release_minor_version }}
+      new_release_patch:     ${{ steps.sr.outputs.new_release_patch_version }}
+      new_release_channel:   ${{ steps.sr.outputs.new_release_channel }}
+      new_release_notes:     ${{ steps.sr.outputs.new_release_notes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # semantic-release needs full history to determine bump
+          persist-credentials: false  # use SR_GITHUB_TOKEN explicitly via env
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install semantic-release + plugins
+        run: npm ci || npm install
+
+      - name: Run semantic-release
+        id: sr
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          # CRITICAL: semantic-release pushes the CHANGELOG bump + pyproject
+          # bump back to main. Default GITHUB_TOKEN is rejected by branch
+          # protection unless we use a PAT or App token. SR_GITHUB_TOKEN must
+          # be a PAT or App-installation token with `contents: write` and
+          # bypass-protection on `main`. See WRITEUP.md auth findings.
+          GITHUB_TOKEN: ${{ secrets.SR_GITHUB_TOKEN || secrets.GITHUB_TOKEN }}
+        with:
+          semantic_version: 24
+          extra_plugins: |
+            @semantic-release/changelog@6
+            @semantic-release/git@10
+            @semantic-release/exec@6
+            conventional-changelog-conventionalcommits@8
+
+  build-versioned-image:
+    needs: semantic-release
+    if: needs.semantic-release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.semantic-release.outputs.new_release_git_tag }}
+      - name: Build versioned image (stub)
+        run: |
+          echo "🏷️  Cut tag: ${{ needs.semantic-release.outputs.new_release_git_tag }}"
+          echo "Version: ${{ needs.semantic-release.outputs.new_release_version }}"
+          echo "Components: major=${{ needs.semantic-release.outputs.new_release_major }} minor=${{ needs.semantic-release.outputs.new_release_minor }} patch=${{ needs.semantic-release.outputs.new_release_patch }}"
+          echo "Channel: ${{ needs.semantic-release.outputs.new_release_channel }}"
+          echo ""
+          echo "[stub] In real kenobi-c2s this step would:"
+          echo "  - docker build . -t cbcoreacrshared.azurecr.io/kenobi-c2s:${{ needs.semantic-release.outputs.new_release_git_tag }}"
+          echo "  - docker push (also tenant image via Dockerfile.tenant)"
+          echo "  - resolve digest, surface as image_ref output"
+          echo ""
+          echo "Promotion to qa/production happens via promote.yml on manual dispatch."
+
+  build-and-deploy-dev:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    concurrency:
+      group: build-and-deploy-dev-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - id: vars
+        run: echo "sha7=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+      - name: Build sha-tagged image (stub)
+        run: |
+          echo "[stub] docker build -t cbcoreacrshared.azurecr.io/kenobi-c2s:sha-${{ steps.vars.outputs.sha7 }} ."
+          echo "[stub] docker tag ... :main"
+          echo "[stub] docker push ..."
+      - name: Deploy to dev (stub)
+        run: |
+          echo "[stub] helm upgrade kenobi-c2s azure/helm-chart/kenobi-c2s/deployment-app/ \\"
+          echo "          --namespace kenobi-c2s \\"
+          echo "          --set image.tag=sha-${{ steps.vars.outputs.sha7 }} \\"
+          echo "          -f azure/helm-chart/kenobi-c2s/deployment-app/values-dev.yaml"
+          echo ""
+          echo "Dev now running sha-${{ steps.vars.outputs.sha7 }} (commit ${GITHUB_SHA})"
