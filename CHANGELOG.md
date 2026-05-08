@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/shashanksinha89/kenobi-semantic-release-poc/compare/1.1.0...1.1.1) (2026-05-08)
+
+### Bug Fixes
+
+* **security:** Patch null-pointer in tenant resolver (hotfix on 1.x line) ([5cddc61](https://github.com/shashanksinha89/kenobi-semantic-release-poc/commit/5cddc6156d7fd88c29f5553c504820fff12c37d2))
+
 ## [1.1.0](https://github.com/shashanksinha89/kenobi-semantic-release-poc/compare/1.0.0...1.1.0) (2026-05-08)
 
 ### Features
