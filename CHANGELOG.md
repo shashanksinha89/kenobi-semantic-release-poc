@@ -1,3 +1,9 @@
+## [2.1.0-rc.1](https://github.com/shashanksinha89/kenobi-semantic-release-poc/compare/2.0.0...2.1.0-rc.1) (2026-05-08)
+
+### Features
+
+* **api:** Develop-channel feature for RC test ([7b35395](https://github.com/shashanksinha89/kenobi-semantic-release-poc/commit/7b35395992508e80e3b8f24cc0a1a25b7e5d450e))
+
 ## [2.0.0](https://github.com/shashanksinha89/kenobi-semantic-release-poc/compare/1.1.0...2.0.0) (2026-05-08)
 
 ### ⚠ BREAKING CHANGES
