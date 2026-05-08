@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/shashanksinha89/kenobi-semantic-release-poc/compare/1.0.0...1.1.0) (2026-05-08)
+
+### Features
+
+* **api:** Add tenant middleware stub ([15b047b](https://github.com/shashanksinha89/kenobi-semantic-release-poc/commit/15b047b1beeb88ce5af6e74c5004b2e3cacbb5ff))
+
 ## 1.0.0 (2026-05-08)
 
 ### Bug Fixes
