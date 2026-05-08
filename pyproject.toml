@@ -1,6 +1,6 @@
 [project]
 name = "kenobi-c2s"
-version = "1.1.0"
+version = "2.0.0"
 description = "POC scaffold mirroring kenobi-c2s for semantic-release evaluation. Real source: github.com/crowdbotics/kenobi-c2s. Companion to kenobi-release-please-poc; same seed version (1.22.0) for direct comparison."
 requires-python = ">=3.12"
 
